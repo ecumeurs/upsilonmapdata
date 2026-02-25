@@ -34,3 +34,22 @@ func NewCell(t CellType, p position.Position) *Cell {
 		EntityID: uuid.Nil,
 	}
 }
+
+func (ct *CellType) ToString() string {
+	switch *ct {
+	case Obstacle:
+		return "Obstacle"
+	case Ground:
+		return "Ground"
+	case Water:
+		return "Water"
+	case Dirt:
+		return "Dirt"
+	case Debug:
+		return "Debug"
+	case Debug2:
+		return "Debug2"
+	default:
+		return "Unknown"
+	}
+}
