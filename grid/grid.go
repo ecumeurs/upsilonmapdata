@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// @spec-link [[entity_grid]]
 type Grid struct {
 	Width  int
 	Length int
