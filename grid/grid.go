@@ -42,7 +42,7 @@ func NewGrid(width, length, groundlevel int) *Grid {
 	return g
 }
 
-// RandomPosition returns a random valid position in the grid
+// RandomPosition returns a random valid position in the grid that is not an obstacle or occupied.
 func (g *Grid) RandomPosition() position.Position {
 	for {
 		x := rand.Intn(g.Width)
@@ -50,8 +50,11 @@ func (g *Grid) RandomPosition() position.Position {
 		z := g.TopMostGroundAt(x, y)
 		pos := position.New(x, y, z)
 		// check if there is a ground cell
-		if _, found := g.CellAt(pos); found {
-			return pos
+		if c, found := g.CellAt(pos); found {
+			// ISS-058: Ensure the tile is NOT an obstacle and NOT occupied by an entity
+			if c.Type != cell.Obstacle && c.EntityID == uuid.Nil {
+				return pos
+			}
 		}
 	}
 }
@@ -366,7 +369,8 @@ func (g *Grid) CellsForPositions(pos []position.Position) []*cell.Cell {
 }
 
 // AStarPath returns the path from start to end using A*
-func (g *Grid) AStarPath(start, end position.Position, jumpHeight int) ([]position.Position, bool) {
+// exclude is an optional predicate to treat certain positions as forbidden (e.g. occupied by entities).
+func (g *Grid) AStarPath(start, end position.Position, jumpHeight int, exclude func(position.Position) bool) ([]position.Position, bool) {
 	if !g.Contains(start) || !g.Contains(end) {
 		return nil, false
 	}
@@ -381,7 +385,7 @@ func (g *Grid) AStarPath(start, end position.Position, jumpHeight int) ([]positi
 		pos := queue[0]
 		queue = queue[1:]
 		if pos.Equals(end) {
-			return g.reconstructPath(visited, start, end, jumpHeight), true
+			return g.reconstructPath(visited, start, end, jumpHeight, exclude), true
 		}
 		visited[pos] = visited[parents[pos]] + 1
 		for _, n := range g.SelectPositionsByPattern2D(pos, pattern.Neighbours2D()) {
@@ -389,6 +393,10 @@ func (g *Grid) AStarPath(start, end position.Position, jumpHeight int) ([]positi
 				continue
 			}
 			if tools.Abs(n.Z-pos.Z) > jumpHeight {
+				continue
+			}
+			// Skip if it matches the exclusion criteria (unless it's the target)
+			if exclude != nil && exclude(n) && !n.Equals(end) {
 				continue
 			}
 			if c, found := g.CellAt(n); found && c.Type == cell.Ground {
@@ -400,7 +408,7 @@ func (g *Grid) AStarPath(start, end position.Position, jumpHeight int) ([]positi
 	return nil, false
 }
 
-func (g *Grid) reconstructPath(visited map[position.Position]int, start, end position.Position, jumpHeight int) []position.Position {
+func (g *Grid) reconstructPath(visited map[position.Position]int, start, end position.Position, jumpHeight int, exclude func(position.Position) bool) []position.Position {
 	res := []position.Position{end}
 	for res[len(res)-1] != start {
 		// find the lowest number within adjascents
