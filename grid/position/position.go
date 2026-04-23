@@ -88,5 +88,10 @@ func (p Position) IsAdjacent(p2 Position, allowedJump int) bool {
 func (p Position) AngleTo(p2 Position) int {
 	dx := p2.X - p.X
 	dy := p2.Y - p.Y
-	return int(math.Atan2(float64(dy), float64(dx)) * 180 / 3.14)
+	angle := int(math.Atan2(float64(dy), float64(dx)) * 180 / 3.14)
+	if angle < 0 {
+		angle += 360
+	}
+	return angle
 }
+
