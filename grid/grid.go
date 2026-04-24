@@ -52,37 +52,68 @@ func (g *Grid) RandomPosition() position.Position {
 		// check if there is a ground cell
 		if c, found := g.CellAt(pos); found {
 			// ISS-058: Ensure the tile is NOT an obstacle and NOT occupied by an entity
-			if c.Type != cell.Obstacle && c.EntityID == uuid.Nil {
+			if c.Type != cell.Obstacle && !c.IsOccupied() {
 				return pos
 			}
 		}
 	}
 }
 
-// MoveEntity moves an entity from one position to another
-func (g *Grid) MoveEntity(from, to position.Position, EntityID uuid.UUID) error {
+// MoveEntity moves an entity from one position to another.
+// @spec-link [[mechanic_multi_entity_cell_system]]
+func (g *Grid) MoveEntity(from, to position.Position, entityID uuid.UUID) error {
 	if !g.Contains(to) {
 		return fmt.Errorf("to position %v is not in the grid", to)
 	}
-	c, ok := g.CellAt(from)
-	if ok {
-		c.EntityID = uuid.Nil
+	if c, ok := g.CellAt(from); ok {
+		c.RemoveEntity(entityID)
 	}
-	c, ok = g.CellAt(to)
-	if ok {
-		c.EntityID = EntityID
-	} else {
+	c, ok := g.CellAt(to)
+	if !ok {
 		return fmt.Errorf("to position %v is not in the grid", to)
+	}
+	c.AddEntity(entityID)
+	return nil
+}
+
+// AddEntity adds an entity to a cell at the given position.
+// @spec-link [[mechanic_multi_entity_cell_system]]
+func (g *Grid) AddEntity(p position.Position, entityID uuid.UUID) {
+	if c, ok := g.CellAt(p); ok {
+		c.AddEntity(entityID)
+	}
+}
+
+// RemoveEntity removes a specific entity from the cell at the given position.
+// @spec-link [[mechanic_multi_entity_cell_system]]
+func (g *Grid) RemoveEntity(p position.Position, entityID uuid.UUID) {
+	if !g.Contains(p) {
+		return
+	}
+	g.Cells[p].RemoveEntity(entityID)
+}
+
+// GetEntitiesAt returns all entity IDs present at the given position.
+// @spec-link [[mechanic_multi_entity_cell_system]]
+func (g *Grid) GetEntitiesAt(p position.Position) []uuid.UUID {
+	if c, ok := g.CellAt(p); ok {
+		result := make([]uuid.UUID, len(c.EntityIDs))
+		copy(result, c.EntityIDs)
+		return result
 	}
 	return nil
 }
 
-// RemoveEntity
-func (g *Grid) RemoveEntity(p position.Position) {
-	if !g.Contains(p) {
-		return
+// IsOccupiedByOther returns true if the cell contains any entity other than the given one.
+func (g *Grid) IsOccupiedByOther(p position.Position, selfID uuid.UUID) bool {
+	if c, ok := g.CellAt(p); ok {
+		for _, id := range c.EntityIDs {
+			if id != selfID {
+				return true
+			}
+		}
 	}
-	g.Cells[p].EntityID = uuid.Nil
+	return false
 }
 
 // CellAt
@@ -183,7 +214,7 @@ func (g *Grid) Display() {
 				}
 				switch c.Type {
 				case cell.Ground:
-					if c.EntityID == uuid.Nil {
+					if !c.IsOccupied() {
 						print(".")
 					} else {
 						print("x")
@@ -235,7 +266,7 @@ func (g *Grid) generateCellAsObeliskCube(p position.Position) string {
 	res += fmt.Sprintf("position = new obelisk.Point3D(%d, %d, %d);\n", p.X*20, p.Y*20, p.Z*20)
 	switch g.Cells[p].Type {
 	case cell.Ground:
-		if g.Cells[p].EntityID != uuid.Nil {
+		if g.Cells[p].IsOccupied() {
 			res += "color = new obelisk.CubeColor().getByHorizontalColor(" + hexColor(lighterColor(p.Z, g.Height, 0, 80), lighterColor(p.Z, g.Height, 0, 80), lighterColor(p.Z, g.Height, 0, 80)) + ");\n"
 		} else {
 			res += "color = new obelisk.CubeColor().getByHorizontalColor(" + hexColor(lighterColor(p.Z, g.Height, 0, 180), 255, lighterColor(p.Z, g.Height, 0, 180)) + ");\n"
