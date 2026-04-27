@@ -44,7 +44,7 @@ func NewGrid(width, length, groundlevel int) *Grid {
 
 // RandomPosition returns a random valid position in the grid that is not an obstacle or occupied.
 func (g *Grid) RandomPosition() position.Position {
-	for {
+	for i := 0; i < 1000; i++ {
 		x := rand.Intn(g.Width)
 		y := rand.Intn(g.Length)
 		z := g.TopMostGroundAt(x, y)
@@ -57,6 +57,17 @@ func (g *Grid) RandomPosition() position.Position {
 			}
 		}
 	}
+	// Fallback to the first available ground tile if random selection fails
+	for x := 0; x < g.Width; x++ {
+		for y := 0; y < g.Length; y++ {
+			z := g.TopMostGroundAt(x, y)
+			pos := position.New(x, y, z)
+			if c, found := g.CellAt(pos); found && c.Type != cell.Obstacle && !c.IsOccupied() {
+				return pos
+			}
+		}
+	}
+	return position.Position{}
 }
 
 // MoveEntity moves an entity from one position to another.
