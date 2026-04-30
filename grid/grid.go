@@ -137,7 +137,7 @@ func (g *Grid) CellAt(p position.Position) (*cell.Cell, bool) {
 }
 
 func (g *Grid) TopMostCellAt(x, y int) int {
-	for z := g.Height; z >= 0; z-- {
+	for z := g.Height - 1; z >= 0; z-- {
 		pos := position.New(x, y, z)
 		_, found := g.Cells[pos]
 		if found {
@@ -148,7 +148,7 @@ func (g *Grid) TopMostCellAt(x, y int) int {
 }
 
 func (g *Grid) LowestCellAt(x, y int) int {
-	for z := 0; z <= g.Height; z++ {
+	for z := 0; z < g.Height; z++ {
 		pos := position.New(x, y, z)
 		if _, found := g.Cells[pos]; found {
 			return z
@@ -159,7 +159,7 @@ func (g *Grid) LowestCellAt(x, y int) int {
 
 func (g *Grid) AllCellsAt(x, y int) []int {
 	res := []int{}
-	for z := 0; z <= g.Height; z++ {
+	for z := 0; z < g.Height; z++ {
 		pos := position.New(x, y, z)
 		if _, found := g.Cells[pos]; found {
 			res = append(res, z)
@@ -169,7 +169,7 @@ func (g *Grid) AllCellsAt(x, y int) []int {
 }
 
 func (g *Grid) TopMostGroundAt(x, y int) int {
-	for z := g.Height; z >= 0; z-- {
+	for z := g.Height - 1; z >= 0; z-- {
 		pos := position.New(x, y, z)
 		c, found := g.Cells[pos]
 		if found && c.Type == cell.Ground {
@@ -180,7 +180,7 @@ func (g *Grid) TopMostGroundAt(x, y int) int {
 }
 
 func (g *Grid) LowestGroundAt(x, y int) int {
-	for z := 0; z <= g.Height; z++ {
+	for z := 0; z < g.Height; z++ {
 		pos := position.New(x, y, z)
 		if c, found := g.Cells[pos]; found && c.Type == cell.Ground {
 			return z
@@ -191,7 +191,7 @@ func (g *Grid) LowestGroundAt(x, y int) int {
 
 func (g *Grid) AllGroundAt(x, y int) []int {
 	res := []int{}
-	for z := 0; z <= g.Height; z++ {
+	for z := 0; z < g.Height; z++ {
 		pos := position.New(x, y, z)
 		if c, found := g.Cells[pos]; found && c.Type == cell.Ground {
 			res = append(res, z)
