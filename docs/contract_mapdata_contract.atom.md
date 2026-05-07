@@ -20,7 +20,7 @@ Establish the technical standards for geometric data structures and grid represe
 ## THE RULE / LOGIC
 - **Grid Standard:** Must support rectangular grids with support for height (Z-axis) and obstacle bitmasks.
 - **Immutability:** Map data instances should be treated as immutable once generated to prevent race conditions in the engine.
-- **Interoperability:** Data formats must be synchronized with `[[upsilontypes]]` and `[[upsilonserializer]]`.
+- **Interoperability:** Data formats must be synchronized with `[[upsilontypes]]`.
 - **Traceability:** Maintain links between data fields and the tactical rules they support (e.g., Jump limits, Range).
 
 ## TECHNICAL INTERFACE
