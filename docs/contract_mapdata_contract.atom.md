@@ -7,7 +7,8 @@ version: 1.0
 priority: 1
 parents:
   - [[shared:contract_upsilon_contract]]
-dependents: []
+dependents:
+  - [[rule_mapdata_grid_standard]]
 layer: BUSINESS
 tags: [governance, contract, mapdata]
 ---

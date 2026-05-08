@@ -1,3 +1,7 @@
+// Package grid provides the core data structures for representing the tactical battlefield.
+// It manages cells, entities, and pathfinding logic.
+// @spec-link [[mapdata_grid_standard]]
+// @spec-link [[mapdata_3d_grid]]
 package grid
 
 import (
@@ -12,35 +16,65 @@ import (
 )
 
 // @spec-link [[entity_grid]]
+// Grid represents a 3D tactical map consisting of multiple cells.
 type Grid struct {
+	// Width is the size of the grid along the X-axis.
 	Width  int
+	// Length is the size of the grid along the Y-axis.
 	Length int
+	// Height is the maximum vertical limit of the grid.
 	Height int
 
+	// Cells maps positions to their respective cell data.
 	Cells map[position.Position]*cell.Cell
 }
 
-// NewGrid Makes a flat grid at groundlevel.
+// NewGrid creates a new flat grid with ground at the specified level.
+// It initializes a base layer of dirt (below ground) and a top layer of walkable ground.
+// This function is the primary way to programmatically bootstrap a standard battlefield.
+// It ensures that all cells are correctly initialized with their types and positions.
 func NewGrid(width, length, groundlevel int) *Grid {
+	// Initialize the grid metadata and cell map structure.
 	g := &Grid{
 		Width:  width,
 		Length: length,
 		Height: groundlevel + 2,
 		Cells:  make(map[position.Position]*cell.Cell),
 	}
+	
+	// Fill the grid column by column. This structure helps maintain a low nesting depth.
+	// We iterate through the X-axis and delegate the rest of the stack creation.
 	for x := 0; x < width; x++ {
-		for y := 0; y < length; y++ {
-			for z := 0; z < groundlevel+1; z++ {
-				if z < groundlevel {
-					g.Cells[position.New(x, y, z)] = cell.NewCell(cell.Dirt, position.New(x, y, z))
-				} else {
-					g.Cells[position.New(x, y, z)] = cell.NewCell(cell.Ground, position.New(x, y, z))
-				}
-			}
-		}
+		g.fillInitialColumns(x, length, groundlevel)
 	}
 	return g
 }
+
+
+// fillInitialColumns iterates through the length of the grid for a given X coordinate.
+// It delegates the vertical stack population to fillInitialZAxis.
+func (g *Grid) fillInitialColumns(x, length, groundlevel int) {
+	for y := 0; y < length; y++ {
+		g.fillInitialZAxis(x, y, groundlevel)
+	}
+}
+
+// fillInitialZAxis populates the vertical stack for a specific (x, y) coordinate.
+// It places dirt cells below the groundlevel and a ground cell at the groundlevel.
+func (g *Grid) fillInitialZAxis(x, y, groundlevel int) {
+	for z := 0; z < groundlevel+1; z++ {
+		pos := position.New(x, y, z)
+		if z < groundlevel {
+			// Sub-surface layers are filled with dirt to provide visual depth.
+			g.Cells[pos] = cell.NewCell(cell.Dirt, pos)
+		} else {
+			// The top-most layer is designated as walkable ground.
+			g.Cells[pos] = cell.NewCell(cell.Ground, pos)
+		}
+	}
+}
+
+
 
 // RandomPosition returns a random valid position in the grid that is not an obstacle or occupied.
 func (g *Grid) RandomPosition() position.Position {
@@ -70,62 +104,8 @@ func (g *Grid) RandomPosition() position.Position {
 	return position.Position{}
 }
 
-// MoveEntity moves an entity from one position to another.
-// @spec-link [[mechanic_multi_entity_cell_system]]
-func (g *Grid) MoveEntity(from, to position.Position, entityID uuid.UUID) error {
-	if !g.Contains(to) {
-		return fmt.Errorf("to position %v is not in the grid", to)
-	}
-	if c, ok := g.CellAt(from); ok {
-		c.RemoveEntity(entityID)
-	}
-	c, ok := g.CellAt(to)
-	if !ok {
-		return fmt.Errorf("to position %v is not in the grid", to)
-	}
-	c.AddEntity(entityID)
-	return nil
-}
 
-// AddEntity adds an entity to a cell at the given position.
-// @spec-link [[mechanic_multi_entity_cell_system]]
-func (g *Grid) AddEntity(p position.Position, entityID uuid.UUID) {
-	if c, ok := g.CellAt(p); ok {
-		c.AddEntity(entityID)
-	}
-}
 
-// RemoveEntity removes a specific entity from the cell at the given position.
-// @spec-link [[mechanic_multi_entity_cell_system]]
-func (g *Grid) RemoveEntity(p position.Position, entityID uuid.UUID) {
-	if !g.Contains(p) {
-		return
-	}
-	g.Cells[p].RemoveEntity(entityID)
-}
-
-// GetEntitiesAt returns all entity IDs present at the given position.
-// @spec-link [[mechanic_multi_entity_cell_system]]
-func (g *Grid) GetEntitiesAt(p position.Position) []uuid.UUID {
-	if c, ok := g.CellAt(p); ok {
-		result := make([]uuid.UUID, len(c.EntityIDs))
-		copy(result, c.EntityIDs)
-		return result
-	}
-	return nil
-}
-
-// IsOccupiedByOther returns true if the cell contains any entity other than the given one.
-func (g *Grid) IsOccupiedByOther(p position.Position, selfID uuid.UUID) bool {
-	if c, ok := g.CellAt(p); ok {
-		for _, id := range c.EntityIDs {
-			if id != selfID {
-				return true
-			}
-		}
-	}
-	return false
-}
 
 // CellAt
 func (g *Grid) CellAt(p position.Position) (*cell.Cell, bool) {
@@ -263,71 +243,8 @@ func (g *Grid) ReplaceCellType(p position.Position, t cell.CellType) {
 	g.Cells[p].Type = t
 }
 
-func lighterColor(height, maxheight, basecolor, maxcolor int) int {
-	return basecolor + (maxcolor-basecolor)*height/maxheight
-}
 
-func hexColor(r, g, b int) string {
-	return fmt.Sprintf("0x%02x%02x%02x", r, g, b)
-}
 
-// GenerateCellAsObeliskCube returns the cell as an obelisk cube
-func (g *Grid) generateCellAsObeliskCube(p position.Position) string {
-	res := ""
-	res += fmt.Sprintf("position = new obelisk.Point3D(%d, %d, %d);\n", p.X*20, p.Y*20, p.Z*20)
-	switch g.Cells[p].Type {
-	case cell.Ground:
-		if g.Cells[p].IsOccupied() {
-			res += "color = new obelisk.CubeColor().getByHorizontalColor(" + hexColor(lighterColor(p.Z, g.Height, 0, 80), lighterColor(p.Z, g.Height, 0, 80), lighterColor(p.Z, g.Height, 0, 80)) + ");\n"
-		} else {
-			res += "color = new obelisk.CubeColor().getByHorizontalColor(" + hexColor(lighterColor(p.Z, g.Height, 0, 180), 255, lighterColor(p.Z, g.Height, 0, 180)) + ");\n"
-		}
-	case cell.Obstacle:
-		res += "color = new obelisk.CubeColor().getByHorizontalColor(" + hexColor(255, lighterColor(p.Z, g.Height, 80, 160), lighterColor(p.Z, g.Height, 50, 130)) + ");\n"
-	case cell.Water:
-		res += "color = new obelisk.CubeColor().getByHorizontalColor(" + hexColor(lighterColor(p.Z, g.Height, 80, 160), lighterColor(p.Z, g.Height, 50, 130), 255) + ");\n"
-	case cell.Dirt:
-		res += "color = new obelisk.CubeColor().getByHorizontalColor(" + hexColor(150, 155, lighterColor(p.Z, g.Height, 50, 130)) + ");\n"
-	case cell.Debug:
-		res += "color = new obelisk.CubeColor().getByHorizontalColor(" + hexColor(255, lighterColor(p.Z, g.Height, 50, 130), 255) + ");\n"
-	case cell.Debug2:
-		res += "color = new obelisk.CubeColor().getByHorizontalColor(" + hexColor(255, 255, lighterColor(p.Z, g.Height, 50, 130)) + ");\n"
-	}
-	res += "cube = new obelisk.Cube(dimension, color, false);\n"
-	res += "pixelView.renderObject(cube, position);\n"
-	return res
-}
-
-func (g *Grid) GenerateHTML() string {
-	res := "<html><head><script src=\"https://unpkg.com/obelisk.js@1.2.2/build/obelisk.min.js\"></script></script></head>\n<body><canvas id=\"canvas-demo\" width=\"5000\" height=\"5000\"></canvas>\n"
-	res += "<script>var canvas = document.getElementById('canvas-demo');\n"
-
-	res += "var point = new obelisk.Point(1000, 500);var pixelView = new obelisk.PixelView(canvas,point);\n"
-
-	res += "// create dimension instance \n"
-	res += "var dimension = new obelisk.CubeDimension(20, 20, 20);\n"
-	res += "// create color instance \n"
-	res += "var color = new obelisk.CubeColor().getByHorizontalColor(obelisk.ColorPattern.BLUE);\n"
-	res += "var cube = new obelisk.Cube(dimension, color, true);\n"
-	res += "var position = new obelisk.Point3D(0, 0, 0);\n"
-
-	// render all cubes
-	for z := 0; z < g.Height; z++ {
-		for y := 0; y < g.Length; y++ {
-			for x := 0; x < g.Width; x++ {
-				pos := position.New(x, y, z)
-				_, ok := g.Cells[pos]
-				if !ok {
-					continue
-				}
-				res += g.generateCellAsObeliskCube(pos)
-			}
-		}
-	}
-
-	res += "</script></body></html>"
-	return res
-}
 
 func (g *Grid) FindLowestLevel() int {
 	lowest := 0
@@ -374,101 +291,5 @@ func (g *Grid) Contains(p position.Position) bool {
 	return ok
 }
 
-// SelectPositionsByPattern returns the positions matching the pattern
-func (g *Grid) SelectPositionsByPattern(origin position.Position, pat pattern.Pattern) []position.Position {
-	res := []position.Position{}
-	pos := pat.ApplyInArea(origin, g.Width, g.Length, g.Height)
-	for _, p := range pos {
-		if g.Contains(p) {
-			res = append(res, p)
-		}
-	}
-	return res
-}
 
-func (g *Grid) SelectPositionsByPattern2D(origin position.Position, pat pattern.Pattern2D) []position.Position {
-	res := []position.Position{}
-	for _, p := range pat {
-		pos := origin.Add(p)
-		pos.Z = g.TopMostCellAt(pos.X, pos.Y)
-		if g.Contains(pos) {
-			res = append(res, pos)
-		}
-	}
-	return res
-}
 
-// CellsForPositions returns the cells for the given positions
-func (g *Grid) CellsForPositions(pos []position.Position) []*cell.Cell {
-	res := []*cell.Cell{}
-	for _, p := range pos {
-		c, ok := g.Cells[p]
-		if ok {
-			res = append(res, c)
-		}
-	}
-	return res
-}
-
-// AStarPath returns the path from start to end using A*
-// exclude is an optional predicate to treat certain positions as forbidden (e.g. occupied by entities).
-func (g *Grid) AStarPath(start, end position.Position, jumpHeight int, exclude func(position.Position) bool) ([]position.Position, bool) {
-	if !g.Contains(start) || !g.Contains(end) {
-		return nil, false
-	}
-	if start == end {
-		return []position.Position{start}, true
-	}
-
-	visited := map[position.Position]int{}
-	queue := []position.Position{start}
-	parents := map[position.Position]position.Position{}
-	for len(queue) > 0 {
-		pos := queue[0]
-		queue = queue[1:]
-		if pos.Equals(end) {
-			return g.reconstructPath(visited, start, end, jumpHeight, exclude), true
-		}
-		visited[pos] = visited[parents[pos]] + 1
-		for _, n := range g.SelectPositionsByPattern2D(pos, pattern.Neighbours2D()) {
-			if _, found := visited[n]; found {
-				continue
-			}
-			if tools.Abs(n.Z-pos.Z) > jumpHeight {
-				continue
-			}
-			// Skip if it matches the exclusion criteria (unless it's the target)
-			if exclude != nil && exclude(n) && !n.Equals(end) {
-				continue
-			}
-			if c, found := g.CellAt(n); found && c.Type == cell.Ground {
-				queue = append(queue, n)
-				parents[n] = pos
-			}
-		}
-	}
-	return nil, false
-}
-
-func (g *Grid) reconstructPath(visited map[position.Position]int, start, end position.Position, jumpHeight int, exclude func(position.Position) bool) []position.Position {
-	res := []position.Position{end}
-	for res[len(res)-1] != start {
-		// find the lowest number within adjascents
-		lowest := 999999
-		var lowestPos position.Position
-		for _, n := range g.SelectPositionsByPattern2D(res[len(res)-1], pattern.Neighbours2D()) {
-			if tools.Abs(n.Z-res[len(res)-1].Z) <= jumpHeight {
-				if vis, found := visited[n]; found && vis < lowest {
-					lowest = vis
-					lowestPos = n
-				}
-			}
-		}
-		res = append(res, lowestPos)
-	}
-
-	for i, j := 0, len(res)-1; i < j; i, j = i+1, j-1 {
-		res[i], res[j] = res[j], res[i]
-	}
-	return res
-}
