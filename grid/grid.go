@@ -5,14 +5,11 @@
 package grid
 
 import (
-	"fmt"
 	"math/rand"
 
 	"github.com/ecumeurs/upsilonmapdata/grid/cell"
 	"github.com/ecumeurs/upsilonmapdata/grid/position"
 	"github.com/ecumeurs/upsilonmapdata/grid/position/pattern"
-	"github.com/ecumeurs/upsilontools/tools"
-	"github.com/google/uuid"
 )
 
 // @spec-link [[entity_grid]]
