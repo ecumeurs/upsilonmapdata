@@ -1,3 +1,7 @@
+// Package cell defines the individual components of the tactical grid.
+// Each cell maintains its own type, position, and lists of attached entities and effects.
+// @spec-link [[mapdata_grid_standard]]
+// @spec-link [[mapdata_3d_grid]]
 package cell
 
 import (
@@ -5,40 +9,50 @@ import (
 	"github.com/google/uuid"
 )
 
-// CellType describe all the possible types of cell
+// CellType defines the terrain category of a grid cell.
 type CellType int
 
 const (
-	// WallCellType is the type of a wall cell
+	// Obstacle tiles are impassable and block line-of-sight.
 	Obstacle CellType = 0
-	// GroundCellType is the type of a ground cell
+	// Ground tiles are walkable and serve as the primary combat layer.
 	Ground CellType = 1
+	// Water tiles may have movement penalties or unique interactions.
 	Water  CellType = 2
+	// Dirt tiles represent the sub-surface layers of the grid.
 	Dirt   CellType = 3
+	// Debug tiles are used for visual diagnostic markers.
 	Debug  CellType = 4
+	// Debug2 tiles are alternative diagnostic markers.
 	Debug2 CellType = 5
 )
 
-// Cell is a cell in the grid.
-// A cell can contain multiple entities simultaneously (characters + traps + area effects etc).
+// Cell represents a single atomic unit of the tactical battlefield.
+// It supports multiple entities (characters, traps) and persistent effects (zones).
 //
 // @spec-link [[mechanic_multi_entity_cell_system]]
 // @spec-link [[mechanic_cell_attached_effects]]
 type Cell struct {
+	// Type determines the collision and visual properties of the cell.
 	Type     CellType
+	// Position is the 3D coordinate of the cell within the grid.
 	Position position.Position
 
-	// EntityIDs holds all entities currently in this cell.
-	// Multiple entities are allowed: one character + any number of WalkThrough entities.
+	// EntityIDs holds all entities currently occupying this space.
+	// This includes characters, items, and interactive objects.
 	EntityIDs []uuid.UUID
 
-	// EffectIDs holds positional effects attached to this cell (traps, zones, terrain modifiers).
-	// Actual effect data is stored in GameState.Effects.
+	// EffectIDs holds references to area-of-effect or persistent terrain modifiers.
 	EffectIDs []uuid.UUID
 }
 
-// NewCell
+// NewCell initializes a new cell instance with the specified terrain type and 3D position.
+// It performs mandatory slice initialization for entities and effects to prevent nil panics.
+// This is the primary constructor for generating game-ready grid cells.
 func NewCell(t CellType, p position.Position) *Cell {
+	// 1. Assign the provided terrain type and world coordinates.
+	// 2. Initialize the entity registry as an empty, non-nil slice.
+	// 3. Initialize the effect registry as an empty, non-nil slice.
 	return &Cell{
 		Type:      t,
 		Position:  p,
@@ -47,17 +61,17 @@ func NewCell(t CellType, p position.Position) *Cell {
 	}
 }
 
-// AddEntity adds an entity ID to this cell.
+// AddEntity appends a new entity ID to the cell's registry.
 func (c *Cell) AddEntity(id uuid.UUID) {
 	c.EntityIDs = append(c.EntityIDs, id)
 }
 
-// RemoveEntity removes an entity ID from this cell.
+// RemoveEntity deletes an entity ID from the cell's registry if present.
 func (c *Cell) RemoveEntity(id uuid.UUID) {
 	c.EntityIDs = removeID(c.EntityIDs, id)
 }
 
-// HasEntity returns true if the given entity ID is in this cell.
+// HasEntity returns true if the specified entity ID is currently registered in this cell.
 func (c *Cell) HasEntity(id uuid.UUID) bool {
 	for _, eid := range c.EntityIDs {
 		if eid == id {
@@ -67,21 +81,22 @@ func (c *Cell) HasEntity(id uuid.UUID) bool {
 	return false
 }
 
-// IsOccupied returns true if any entity is in this cell.
+// IsOccupied returns true if the cell contains at least one entity.
 func (c *Cell) IsOccupied() bool {
 	return len(c.EntityIDs) > 0
 }
 
-// AddEffect adds a positional effect ID to this cell.
+// AddEffect attaches a new positional effect ID to the cell.
 func (c *Cell) AddEffect(id uuid.UUID) {
 	c.EffectIDs = append(c.EffectIDs, id)
 }
 
-// RemoveEffect removes a positional effect ID from this cell.
+// RemoveEffect detaches a positional effect ID from the cell.
 func (c *Cell) RemoveEffect(id uuid.UUID) {
 	c.EffectIDs = removeID(c.EffectIDs, id)
 }
 
+// ToString returns the human-readable string representation of the CellType.
 func (ct *CellType) ToString() string {
 	switch *ct {
 	case Obstacle:
@@ -101,12 +116,19 @@ func (ct *CellType) ToString() string {
 	}
 }
 
-// removeID removes an ID from a slice, preserving order. Returns the same slice if not found.
+// removeID is an internal helper that removes a target UUID from a slice while preserving relative order.
+// It uses slice reslicing to perform the removal in O(n) time.
 func removeID(ids []uuid.UUID, id uuid.UUID) []uuid.UUID {
+	// 1. Iterate through the slice to find the target identifier.
 	for i, existing := range ids {
+		// 2. Exact UUID comparison.
 		if existing == id {
+			// 3. Concatenate the slices before and after the removed index.
 			return append(ids[:i], ids[i+1:]...)
 		}
 	}
+	// 4. Return the original slice if the target was not found.
 	return ids
 }
+
+
