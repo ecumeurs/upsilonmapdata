@@ -5,7 +5,8 @@ type: RULE
 version: 1.0
 priority: 2
 tags: [mapdata,grid,standard]
-dependents: []
+dependents:
+  - [[mapdata_3d_grid]]
 human_name: "MapData Grid Standard"
 layer: BUSINESS
 parents:
