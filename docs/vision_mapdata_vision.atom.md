@@ -12,7 +12,7 @@ parents:
   - [[shared:vision_upsilon_vision]]
 ---
 
-# New Atom
+# UpsilonMapData Vision
 
 ## INTENT
 Define the vision for UpsilonMapData as the geometric foundation of the tactical grid.
@@ -25,7 +25,7 @@ Define the vision for UpsilonMapData as the geometric foundation of the tactical
   - **Serialization Ready:** Ensure all map data is easily portable between Go, PHP, and JS.
 
 ## TECHNICAL INTERFACE
-- **Code Tag:** `@spec-link [[mapdata_vision]]`
-- **Related Atoms:** `[[shared:upsilon_vision]]`
+- **Code Tag:** `@spec-link [[vision_mapdata_vision]]`
+- **Related Atoms:** `[[shared:vision_upsilon_vision]]`
 
 ## EXPECTATION

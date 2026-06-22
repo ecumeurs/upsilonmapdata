@@ -1,19 +1,19 @@
 ---
-id: mapdata_grid_standard
+id: rule_mapdata_grid_standard
 status: DRAFT
 type: RULE
 version: 1.0
 priority: 2
 tags: [mapdata,grid,standard]
 dependents:
-  - [[mapdata_3d_grid]]
+  - [[entity_mapdata_3d_grid]]
 human_name: "MapData Grid Standard"
 layer: BUSINESS
 parents:
   - [[contract_mapdata_contract]]
 ---
 
-# New Atom
+# MapData Grid Standard
 
 ## INTENT
 Define the mandatory structural properties for tactical grids in Upsilon.
@@ -25,7 +25,7 @@ Define the mandatory structural properties for tactical grids in Upsilon.
 - **Obstacles:** The standard must support a way to distinguish walkable tiles from impassable obstacles.
 
 ## TECHNICAL INTERFACE
-- **Code Tag:** `@spec-link [[mapdata_grid_standard]]`
+- **Code Tag:** `@spec-link [[rule_mapdata_grid_standard]]`
 
 ## EXPECTATION
 Grid structures must consistently support Width, Length, and Height properties and validate all cell additions against these boundaries.

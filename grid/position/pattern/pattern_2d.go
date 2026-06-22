@@ -1,8 +1,8 @@
 // Package pattern defines spatial shapes used for selection and effect application in the grid.
 // These patterns are used by skills, area-of-effect calculations, and map generation.
 // This file specifically focuses on 2D pattern operations.
-// @spec-link [[mapdata_grid_standard]]
-// @spec-link [[mapdata_3d_grid]]
+// @spec-link [[rule_mapdata_grid_standard]]
+// @spec-link [[entity_mapdata_3d_grid]]
 package pattern
 
 import (

@@ -7,12 +7,14 @@ version: 1.0
 priority: 1
 parents:
   - [[shared:contract_upsilon_contract]]
-dependents: []
+dependents:
+  - [[entity_grid]]
+  - [[rule_mapdata_grid_standard]]
 layer: BUSINESS
 tags: [governance, contract, mapdata]
 ---
 
-# New Atom
+# UpsilonMapData Contract
 
 ## INTENT
 Establish the technical standards for geometric data structures and grid representation.
@@ -24,7 +26,7 @@ Establish the technical standards for geometric data structures and grid represe
 - **Traceability:** Maintain links between data fields and the tactical rules they support (e.g., Jump limits, Range).
 
 ## TECHNICAL INTERFACE
-- **Code Tag:** `@spec-link [[mapdata_contract]]`
-- **Related Atoms:** `[[shared:upsilon_contract]]`
+- **Code Tag:** `@spec-link [[contract_mapdata_contract]]`
+- **Related Atoms:** `[[shared:contract_upsilon_contract]]`
 
 ## EXPECTATION

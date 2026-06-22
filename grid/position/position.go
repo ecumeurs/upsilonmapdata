@@ -1,7 +1,7 @@
 // Package position defines the 3D coordinate system for the tactical grid.
 // It provides arithmetic operations, distance calculations, and spatial utilities.
-// @spec-link [[mapdata_grid_standard]]
-// @spec-link [[mapdata_3d_grid]]
+// @spec-link [[rule_mapdata_grid_standard]]
+// @spec-link [[entity_mapdata_3d_grid]]
 package position
 
 import (
