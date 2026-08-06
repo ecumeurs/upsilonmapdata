@@ -1,7 +1,7 @@
 // Package grid provides visualization utilities for the tactical grid using obelisk.js.
 // It generates HTML representations that can be used for debugging or map previews.
 // @spec-link [[rule_mapdata_grid_standard]]
-// @spec-link [[entity_mapdata_3d_grid]]
+// @spec-link [[entity_grid]]
 package grid
 
 import (

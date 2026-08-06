@@ -1,7 +1,7 @@
 // Package grid provides the entity management capabilities for the tactical grid.
 // It handles moving, adding, and querying entities across different cells.
 // @spec-link [[rule_mapdata_grid_standard]]
-// @spec-link [[entity_mapdata_3d_grid]]
+// @spec-link [[entity_grid]]
 package grid
 
 import (

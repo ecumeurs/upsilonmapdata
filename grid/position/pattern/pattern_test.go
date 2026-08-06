@@ -1,7 +1,7 @@
 // Package pattern provides tests for spatial shape generation and manipulation.
 // It ensures that geometric algorithms correctly map to grid coordinates.
-// @spec-link [[rule_mapdata_grid_standard]]
-// @spec-link [[entity_mapdata_3d_grid]]
+// @test-link [[rule_mapdata_grid_standard]]
+// @test-link [[entity_grid]]
 package pattern
 
 import (

@@ -1,7 +1,7 @@
 // Package cell defines the individual components of the tactical grid.
 // Each cell maintains its own type, position, and lists of attached entities and effects.
 // @spec-link [[rule_mapdata_grid_standard]]
-// @spec-link [[entity_mapdata_3d_grid]]
+// @spec-link [[entity_grid]]
 package cell
 
 import (

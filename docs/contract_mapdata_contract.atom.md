@@ -5,11 +5,8 @@ human_name: UpsilonMapData Contract
 type: CONTRACT
 version: 1.0
 priority: 1
-parents:
-  - [[shared:contract_upsilon_contract]]
-dependents:
-  - [[entity_grid]]
-  - [[rule_mapdata_grid_standard]]
+parents: []
+dependents: []
 layer: BUSINESS
 tags: [governance, contract, mapdata]
 ---

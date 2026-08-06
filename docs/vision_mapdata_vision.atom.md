@@ -8,8 +8,7 @@ dependents: []
 human_name: UpsilonMapData Vision
 type: VISION
 layer: BUSINESS
-parents:
-  - [[shared:vision_upsilon_vision]]
+parents: []
 ---
 
 # UpsilonMapData Vision

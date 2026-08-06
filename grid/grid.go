@@ -1,7 +1,6 @@
 // Package grid provides the core data structures for representing the tactical battlefield.
 // It manages cells, entities, and pathfinding logic.
 // @spec-link [[rule_mapdata_grid_standard]]
-// @spec-link [[entity_mapdata_3d_grid]]
 package grid
 
 import (

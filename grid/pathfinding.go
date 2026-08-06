@@ -1,7 +1,7 @@
 // Package grid provides pathfinding and spatial selection logic for the tactical grid.
 // It implements A* search and pattern-based cell filtering.
 // @spec-link [[rule_mapdata_grid_standard]]
-// @spec-link [[entity_mapdata_3d_grid]]
+// @spec-link [[entity_grid]]
 package grid
 
 import (

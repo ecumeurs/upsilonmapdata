@@ -1,6 +1,6 @@
 // Package grid provides automated tests for the tactical grid system.
-// @spec-link [[rule_mapdata_grid_standard]]
-// @spec-link [[entity_mapdata_3d_grid]]
+// @test-link [[rule_mapdata_grid_standard]]
+// @test-link [[entity_grid]]
 package grid
 
 import (
